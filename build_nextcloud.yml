@@ -1,9 +1,6 @@
-
-
 ---
 
 - hosts: 127.0.0.1
-
 
   tasks:
 
@@ -25,7 +22,7 @@
           - php7.0-zip
           - php7.0-xml
           - php7.0-mbstring
-       when ansible_distribution_release == 'stretch'
+       when: ansible_distribution_release == 'stretch'
 
 
      - name: Install php 5 packages for Raspbian Jessie
@@ -36,7 +33,7 @@
           - sqlite
           - php5-sqlite
           - php5-curl
-       when ansible_distribution_release == 'jessie'
+       when: ansible_distribution_release == 'jessie'
 
 
      - name: Restart Apache
