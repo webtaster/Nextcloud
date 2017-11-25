@@ -1,9 +1,11 @@
+
 ---
 
 - hosts: localhost
 
   vars:
-     nextcloud_dir: /var/www/html
+     nextcloud_dir: /var/www/html/nextcloud
+     data_dir: /var/nextcloud/data
 
   tasks:
 
@@ -13,6 +15,10 @@
           state: installed
           update_cache: yes
 
+     #- name: Install MySQL
+     #  apt:
+     #     name: mysql-server
+     #     state: installed
 
      - name: Install php 7 packages for Raspbian Stretch
        apt:  name='{{item}}' state=installed
@@ -25,8 +31,9 @@
           - php7.0-zip
           - php7.0-xml
           - php7.0-mbstring
+          - libapache2-mod-php7.0
+          # - php7.0-mysql
        when: ansible_distribution_release == 'stretch'
-
 
      - name: Install php 5 packages for Raspbian Jessie
        apt:  name='{{item}}' state=installed
@@ -38,41 +45,41 @@
           - php5-curl
        when: ansible_distribution_release == 'jessie'
 
-
      - name: Restart Apache
        service:
           name: apache2
           state: restarted
           enabled: yes
 
+
      - name: Download the latest version of Nextcloud
        get_url:
           url: https://download.nextcloud.com/server/releases/latest.zip
           dest: /tmp/nextcloud.zip
 
-
      - name: Unzip Nextcloud
        unarchive:
           src: /tmp/nextcloud.zip
-          dest: '{{nextcloud_dir}}'
+          dest: '{{nextcloud_dir | dirname}}'
           remote_src: yes
+
 
      - name: Create data directory
        file:
-          path: '{{nextcloud_dir}}/nextcloud/data'
+          path: '{{data_dir}}'
           state: directory
           owner: www-data
           group: www-data
           mode: 0750
-
-
+          recurse: yes
 
      - name: Set Nextcloud directory ownerships
        file:
-          path: '/var/www/html/nextcloud/{{item}}'
+          path: '{{nextcloud_dir}}/{{item}}'
           owner: www-data
           group: www-data
        with_items:
           - config
           - apps
+
 
