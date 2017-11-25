@@ -1,6 +1,9 @@
 ---
-# test
-- hosts: 127.0.0.1
+
+- hosts: localhost
+
+  vars:
+     nextcloud_dir: /var/www/html
 
   tasks:
 
@@ -42,7 +45,7 @@
           state: restarted
           enabled: yes
 
-     - name: Download Nextcloud
+     - name: Download the latest version of Nextcloud
        get_url:
           url: https://download.nextcloud.com/server/releases/latest.zip
           dest: /tmp/nextcloud.zip
@@ -51,16 +54,17 @@
      - name: Unzip Nextcloud
        unarchive:
           src: /tmp/nextcloud.zip
-          dest: /var/www/html
+          dest: '{{nextcloud_dir}}'
           remote_src: yes
 
      - name: Create data directory
        file:
-          path: /var/www/html/nextcloud/data
+          path: '{{nextcloud_dir}}/nextcloud/data'
           state: directory
           owner: www-data
           group: www-data
           mode: 0750
+
 
 
      - name: Set Nextcloud directory ownerships
@@ -71,5 +75,4 @@
        with_items:
           - config
           - apps
-
 
