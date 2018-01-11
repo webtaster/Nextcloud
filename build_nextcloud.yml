@@ -4,8 +4,12 @@
 - hosts: localhost
 
   vars:
-     nextcloud_dir: /var/www/html/nextcloud
-     data_dir: /var/nextcloud/data
+     nextcloud_dir:       /var/www/html/nextcloud
+     data_dir:            /var/nextcloud/data
+     database:            "{{ DATABASE | default('sqlite') }}"
+     mysql_root_password: '{{ MYSQL_ROOT_PASSWORD }}'
+     ncuser_password:     '{{ NCUSER_PASSWORD }}'
+
 
   tasks:
 
@@ -15,24 +19,80 @@
           state: installed
           update_cache: yes
 
-     #- name: Install MySQL
-     #  apt:
-     #     name: mysql-server
-     #     state: installed
+
+     #######################################################
+     # Install MySQL and associated packages, if required
+     #######################################################
+
+     - name: Install MySQL and associated packages for Raspbian Stretch
+       apt:
+          name: '{{item}}'
+          state: installed
+       with_items:
+          - mysql-server
+          - python-mysqldb
+          - php7.0-mysql
+       when: database == 'mysql' and ansible_distribution_release == 'stretch'
+
+     - name: Install MySQL and associated packages for Raspbian Jessie
+       apt:
+          name: '{{item}}'
+          state: installed
+       with_items:
+          - mysql-server
+          - python-mysqldb
+          - php5-mysql
+       when: database == 'mysql' and ansible_distribution_release == 'jessie'
+
+
+
+     #######################################################
+     # Configure MySQL, if required
+     #######################################################
+
+     - name: Set the MySQL root password 
+       mysql_user: 
+          user: root 
+          password: '{{ mysql_root_password }}'
+          host: localhost
+       when: database == 'mysql'
+
+     - name: Create MySQL database
+       mysql_db:
+          login_user: root
+          login_password: '{{ mysql_root_password }}'
+          name: nextcloud
+          state: present
+       when: database == 'mysql'
+
+     - name: Create MySQL admin user
+       mysql_user:
+          login_user: root
+          login_password: '{{ mysql_root_password }}'
+          name: ncuser
+          password: '{{ ncuser_password }}'
+          priv: '*.*:ALL,GRANT'
+          state: present
+       when: database == 'mysql'
+
+
+
+
+     ###################################################
+     # Install php packages required by Nextcloud
+     ###################################################
 
      - name: Install php 7 packages for Raspbian Stretch
        apt:  name='{{item}}' state=installed
        with_items:
           - php7.0
           - php7.0-gd
-          - sqlite
           - php7.0-sqlite3
           - php7.0-curl
           - php7.0-zip
           - php7.0-xml
           - php7.0-mbstring
           - libapache2-mod-php7.0
-          # - php7.0-mysql
        when: ansible_distribution_release == 'stretch'
 
      - name: Install php 5 packages for Raspbian Jessie
@@ -40,16 +100,16 @@
        with_items:
           - php5
           - php5-gd
-          - sqlite
           - php5-sqlite
           - php5-curl
        when: ansible_distribution_release == 'jessie'
 
-     - name: Restart Apache
-       service:
-          name: apache2
-          state: restarted
-          enabled: yes
+
+
+
+     ###################################################
+     # Install and configure Nextcloud
+     ###################################################
 
 
      - name: Download the latest version of Nextcloud
@@ -64,7 +124,7 @@
           remote_src: yes
 
 
-     - name: Create data directory
+     - name: Create data directory '{{data_dir}}'
        file:
           path: '{{data_dir}}'
           state: directory
@@ -81,5 +141,12 @@
        with_items:
           - config
           - apps
+
+
+     - name: Restart Apache
+       service:
+          name: apache2
+          state: restarted
+          enabled: yes
 
 
