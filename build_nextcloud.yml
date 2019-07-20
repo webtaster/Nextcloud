@@ -16,7 +16,7 @@
      - name: Install Apache
        apt:
           name: apache2
-          state: installed
+          state: present
           update_cache: yes
 
 
@@ -24,24 +24,31 @@
      # Install MySQL and associated packages, if required
      #######################################################
 
+     - name: Install MySQL and associated packages for Raspbian Buster
+       apt:
+          pkg:
+             - mariadb-server
+             - python-mysqldb
+             - php-mysql
+          state: present
+       when: database == 'mysql' and ansible_distribution_release == 'buster'
+
      - name: Install MySQL and associated packages for Raspbian Stretch
        apt:
-          name: '{{item}}'
-          state: installed
-       with_items:
-          - mysql-server
-          - python-mysqldb
-          - php7.0-mysql
+          pkg:
+             - mysql-server
+             - python-mysqldb
+             - php7.0-mysql
+          state: present
        when: database == 'mysql' and ansible_distribution_release == 'stretch'
 
      - name: Install MySQL and associated packages for Raspbian Jessie
        apt:
-          name: '{{item}}'
-          state: installed
-       with_items:
-          - mysql-server
-          - python-mysqldb
-          - php5-mysql
+          pkg:
+             - mysql-server
+             - python-mysqldb
+             - php5-mysql
+          state: present
        when: database == 'mysql' and ansible_distribution_release == 'jessie'
 
 
@@ -82,26 +89,43 @@
      # Install php packages required by Nextcloud
      ###################################################
 
+     - name: Install php 7.3 packages for Raspbian Buster
+       apt:
+          pkg:
+             - php
+             - php-gd
+             - sqlite
+             - php-sqlite3
+             - php-curl
+             - php-zip
+             - php-xml
+             - php-mbstring
+             - libapache2-mod-php
+          state: present
+       when: ansible_distribution_release == 'buster'
+
      - name: Install php 7 packages for Raspbian Stretch
-       apt:  name='{{item}}' state=installed
-       with_items:
-          - php7.0
-          - php7.0-gd
-          - php7.0-sqlite3
-          - php7.0-curl
-          - php7.0-zip
-          - php7.0-xml
-          - php7.0-mbstring
-          - libapache2-mod-php7.0
+       apt:
+          pkg:
+             - php7.0
+             - php7.0-gd
+             - php7.0-sqlite3
+             - php7.0-curl
+             - php7.0-zip
+             - php7.0-xml
+             - php7.0-mbstring
+             - libapache2-mod-php7.0
+          state: present
        when: ansible_distribution_release == 'stretch'
 
      - name: Install php 5 packages for Raspbian Jessie
-       apt:  name='{{item}}' state=installed
-       with_items:
-          - php5
-          - php5-gd
-          - php5-sqlite
-          - php5-curl
+       apt:
+          pkg:
+             - php5
+             - php5-gd
+             - php5-sqlite
+             - php5-curl
+          state: present
        when: ansible_distribution_release == 'jessie'
 
 
