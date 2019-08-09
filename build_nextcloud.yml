@@ -104,7 +104,7 @@
           state: present
        when: ansible_distribution_release == 'buster'
 
-     - name: Install php 7 packages for Raspbian Stretch
+     - name: Install php 7.0 packages for Raspbian Stretch
        apt:
           pkg:
              - php7.0
@@ -136,10 +136,17 @@
      ###################################################
 
 
-     - name: Download the latest version of Nextcloud
+     - name: Download the very latest version of Nextcloud (for Buster)
        get_url:
           url: https://download.nextcloud.com/server/releases/latest.zip
           dest: /tmp/nextcloud.zip
+       when: ansible_distribution_release == 'buster'
+
+     - name: Download the latest version of Nextcloud 15 (for Stretch/Jessie)
+       get_url:
+          url: https://download.nextcloud.com/server/releases/latest-15.zip
+          dest: /tmp/nextcloud.zip
+       when: ansible_distribution_release == 'stretch' or ansible_distribution_release == "jessie"
 
      - name: Unzip Nextcloud
        unarchive:
