@@ -31,25 +31,26 @@
              - python-mysqldb
              - php-mysql
           state: present
-       when: database == 'mysql' and ansible_distribution_release == 'buster'
+       when: database == 'mysql'
+# and ansible_distribution_release == 'buster'
 
-     - name: Install MySQL and associated packages for Raspbian Stretch
-       apt:
-          pkg:
-             - mysql-server
-             - python-mysqldb
-             - php7.0-mysql
-          state: present
-       when: database == 'mysql' and ansible_distribution_release == 'stretch'
+     #- name: Install MySQL and associated packages for Raspbian Stretch
+     #  apt:
+     #     pkg:
+     #        - mysql-server
+     #        - python-mysqldb
+     #        - php7.0-mysql
+     #     state: present
+     #  when: database == 'mysql' and ansible_distribution_release == 'stretch'
 
-     - name: Install MySQL and associated packages for Raspbian Jessie
-       apt:
-          pkg:
-             - mysql-server
-             - python-mysqldb
-             - php5-mysql
-          state: present
-       when: database == 'mysql' and ansible_distribution_release == 'jessie'
+     #- name: Install MySQL and associated packages for Raspbian Jessie
+     #  apt:
+     #     pkg:
+     #        - mysql-server
+     #        - python-mysqldb
+     #        - php5-mysql
+     #     state: present
+     #  when: database == 'mysql' and ansible_distribution_release == 'jessie'
 
 
 
@@ -89,12 +90,12 @@
      # Install php packages required by Nextcloud
      ###################################################
 
-     - name: Install php packages for Raspbian Buster
+     - name: Install php packages for Raspbian Buster/Bullseye
        apt:
           pkg:
              - php
              - php-gd
-             - sqlite
+             - sqlite3
              - php-sqlite3
              - php-curl
              - php-zip
@@ -102,7 +103,7 @@
              - php-mbstring
              - libapache2-mod-php
           state: present
-       when: ansible_distribution_release == 'buster'
+       when: ansible_distribution_release == 'buster' or ansible_distribution_release == "bullseye"
 
      - name: Install php 7.0 packages for Raspbian Stretch
        apt:
@@ -136,12 +137,12 @@
      ###################################################
 
 
-     - name: Download Nextcloud latest version (for Buster)
+     - name: Download Nextcloud latest version (for Buster/Bullseye)
        get_url:
           #url: https://download.nextcloud.com/server/releases/latest.zip
           url: https://download.nextcloud.com/server/releases/latest.zip
           dest: /tmp/nextcloud.zip
-       when: ansible_distribution_release == 'buster'
+       when: ansible_distribution_release == 'buster' or ansible_distribution_release == "bullseye"
 
      - name: Download the latest version of Nextcloud 15 (for Stretch/Jessie)
        get_url:
@@ -180,5 +181,4 @@
           name: apache2
           state: restarted
           enabled: yes
-
 
